@@ -86,3 +86,8 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+# dev files
+main.js
+.hotreload
+data.json

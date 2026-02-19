@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-neodb-plugin",
+  "name": "NeoDB Sync",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "Sync NeoDB collection data to Obsidian",
+  "author": "sisyphe42",
+  "authorUrl": "https://github.com/sisyphe42",
+  "isDesktopOnly": true
+}

@@ -1,0 +1,218 @@
+import {
+    NeoDBUserMark,
+    NeoDBCollection,
+    NeoDBCollectionItem,
+    NeoDBNote,
+    NeoDBReview,
+} from './types';
+
+export function sanitizeFileName(name: string): string {
+    return name
+        .replace(/[\\/:*?"<>|]/g, '')
+        .replace(/\n/g, ' ')
+        .trim()
+        .substring(0, 200);
+}
+
+export function renderTemplate(template: string, data: Record<string, any>): string {
+    let result = template;
+
+    const conditionalRegex = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
+    result = result.replace(conditionalRegex, (_, key, content) => {
+        const value = data[key];
+        if (value === undefined || value === null || value === '' || 
+            (Array.isArray(value) && value.length === 0)) {
+            return '';
+        }
+        return content;
+    });
+
+    const arrayRegex = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
+    result = result.replace(arrayRegex, (_, key, content) => {
+        const value = data[key];
+        if (Array.isArray(value)) {
+            return value.map(item => {
+                if (typeof item === 'object') {
+                    let itemContent = content;
+                    Object.keys(item).forEach(k => {
+                        itemContent = itemContent.replace(
+                            new RegExp(`\\{\\{\\.${k}\\}\\}`, 'g'),
+                            String(item[k] || '')
+                        );
+                    });
+                    itemContent = itemContent.replace(/\{\{\.\}\}/g, String(item));
+                    return itemContent;
+                }
+                return content.replace(/\{\{\.\}\}/g, String(item));
+            }).join('');
+        }
+        return '';
+    });
+
+    const simpleValueRegex = /\{\{(\w+)\}\}/g;
+    result = result.replace(simpleValueRegex, (_, key) => {
+        const value = data[key];
+        if (value === undefined || value === null) {
+            return '';
+        }
+        if (Array.isArray(value)) {
+            return value.join(', ');
+        }
+        if (typeof value === 'object') {
+            return JSON.stringify(value);
+        }
+        return String(value);
+    });
+
+    result = result.replace(/\n{3,}/g, '\n\n');
+    return result.trim();
+}
+
+export interface ItemTemplateData {
+    uuid: string;
+    title: string;
+    type: string;
+    description?: string;
+    cover_image_url?: string;
+    url: string;
+    rating?: number;
+    shelf_type?: string;
+    comment?: string;
+    tags: string[];
+    created_time: string;
+    last_modified_time: string;
+    author?: string | string[];
+    translator?: string | string[];
+    publisher?: string;
+    publish_date?: string;
+    language?: string;
+    isbn?: string;
+    genre?: string | string[];
+    external_resources?: Array<{ url: string; title: string }>;
+}
+
+export function prepareItemData(mark: NeoDBUserMark): ItemTemplateData {
+    const item = mark.item;
+    return {
+        uuid: item.uuid,
+        title: item.title,
+        type: item.type,
+        description: item.description,
+        cover_image_url: item.cover_image_url,
+        url: item.url,
+        rating: mark.rating ?? item.rating,
+        shelf_type: mark.shelf_type,
+        comment: mark.comment,
+        tags: mark.tags || [],
+        created_time: mark.created_time,
+        last_modified_time: mark.last_modified_time,
+        author: item.author,
+        translator: item.translator,
+        publisher: item.publisher,
+        publish_date: item.publish_date,
+        language: item.language,
+        isbn: item.isbn,
+        genre: item.genre,
+        external_resources: item.external_resources,
+    };
+}
+
+export interface CollectionTemplateData {
+    uuid: string;
+    title: string;
+    description?: string;
+    cover_image_url?: string;
+    items_count: number;
+    followers_count: number;
+    visibility: number;
+    created_time: string;
+    last_modified_time: string;
+    url: string;
+    items: Array<{ order: number; item_title: string; item_uuid: string; note?: string }>;
+}
+
+export function prepareCollectionData(
+    collection: NeoDBCollection,
+    items: NeoDBCollectionItem[]
+): CollectionTemplateData {
+    return {
+        uuid: collection.uuid,
+        title: collection.title,
+        description: collection.description,
+        cover_image_url: collection.cover_image_url,
+        items_count: collection.items_count,
+        followers_count: collection.followers_count,
+        visibility: collection.visibility,
+        created_time: collection.created_time,
+        last_modified_time: collection.last_modified_time,
+        url: `${collection.uuid}`,
+        items: items.map((item, index) => ({
+            order: item.order ?? index + 1,
+            item_title: item.item.title,
+            item_uuid: item.item.uuid,
+            note: item.note,
+        })),
+    };
+}
+
+export interface NoteTemplateData {
+    uuid: string;
+    item_title: string;
+    item_uuid: string;
+    content: string;
+    visibility: number;
+    created_time: string;
+    last_modified_time: string;
+}
+
+export function prepareNoteData(note: NeoDBNote): NoteTemplateData {
+    return {
+        uuid: note.uuid,
+        item_title: note.item.title,
+        item_uuid: note.item.uuid,
+        content: note.content,
+        visibility: note.visibility,
+        created_time: note.created_time,
+        last_modified_time: note.last_modified_time,
+    };
+}
+
+export interface ReviewTemplateData {
+    uuid: string;
+    item_title: string;
+    item_uuid: string;
+    title?: string;
+    content: string;
+    rating?: number;
+    visibility: number;
+    created_time: string;
+    last_modified_time: string;
+}
+
+export function prepareReviewData(review: NeoDBReview): ReviewTemplateData {
+    return {
+        uuid: review.uuid,
+        item_title: review.item.title,
+        item_uuid: review.item.uuid,
+        title: review.title,
+        content: review.content,
+        rating: review.rating,
+        visibility: review.visibility,
+        created_time: review.created_time,
+        last_modified_time: review.last_modified_time,
+    };
+}
+
+export function generateFileName(pattern: string, data: Record<string, any>): string {
+    let fileName = pattern;
+
+    Object.keys(data).forEach(key => {
+        const value = data[key];
+        if (value !== undefined && value !== null) {
+            const stringValue = Array.isArray(value) ? value.join(', ') : String(value);
+            fileName = fileName.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), stringValue);
+        }
+    });
+
+    return sanitizeFileName(fileName);
+}

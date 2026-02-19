@@ -1,0 +1,29 @@
+{
+  "name": "obsidian-neodb-plugin",
+  "version": "1.0.0",
+  "description": "Sync NeoDB collection data to Obsidian",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "lint": "eslint src/",
+    "version": "node version-bump.mjs && git add manifest.json versions.json"
+  },
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "neodb"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.27.3",
+    "eslint": "^10.0.0",
+    "eslint-plugin-obsidianmd": "^0.1.9",
+    "obsidian": "latest",
+    "tslib": "2.4.0",
+    "typescript": "^4.8.4"
+  }
+}
