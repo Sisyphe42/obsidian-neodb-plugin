@@ -1,18 +1,125 @@
 .neodb-setting-textarea {
     width: 100%;
     min-height: 200px;
-    font-family: monospace;
-    font-size: 12px;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
     resize: vertical;
+}
+
+.neodb-template-preview {
+    margin-bottom: 1em;
 }
 
 .neodb-modal-textarea {
     width: 100%;
     min-height: 150px;
-    font-family: monospace;
-    font-size: 12px;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
 }
 
 .debug-enabled {
     background-color: var(--text-error) !important;
+}
+
+.neodb-template-editor {
+    width: min(90vw, 1000px);
+    height: min(85vh, 800px);
+}
+
+.neodb-template-editor .modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.neodb-template-editor-wrapper {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.neodb-template-editor-variables {
+    flex: 0 0 280px;
+    overflow-y: auto;
+    padding: 8px;
+    background: var(--background-secondary);
+    border-radius: 6px;
+}
+
+.neodb-template-editor-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.neodb-template-editor-textarea {
+    flex: 1;
+    width: 100%;
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    resize: none;
+    tab-size: 2;
+}
+
+.neodb-variables-modal {
+    width: min(80vw, 700px);
+}
+
+.neodb-variables-list {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.neodb-variables-group {
+    margin-bottom: 1.2em;
+}
+
+.neodb-variables-group h4 {
+    margin: 0 0 4px 0;
+}
+
+.neodb-variables-desc {
+    margin: 0 0 8px 0;
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+}
+
+.neodb-variables-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.neodb-variable-chip {
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+    padding: 4px 8px;
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: pre;
+    text-align: left;
+}
+
+.neodb-variable-chip:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+}
+
+.neodb-variables-hint {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    font-style: italic;
+    margin-top: 8px;
+}
+
+.neodb-modal-button-row {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 12px;
 }

@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-neodb-plugin",
-  "version": "1.0.0",
-  "description": "Sync NeoDB collection data to Obsidian",
+  "name": "neodb-sync",
+  "version": "0.1.0",
+  "description": "Sync your NeoDB collection data to your vault.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",

@@ -11,6 +11,7 @@ import {
     sanitizeFileName,
 } from './templates';
 import { NeoDBImportData } from './types';
+import { t, setLocale } from './i18n';
 
 export default class NeoDBPlugin extends Plugin {
     settings: NeoDBSettings;
@@ -21,13 +22,13 @@ export default class NeoDBPlugin extends Plugin {
         this.api = new NeoDBAPI(this.settings.neodbDomain, this.settings.neodbApiKey);
         setDebugMode(this.settings.debugMode);
 
-        this.addRibbonIcon('puzzle', 'Sync NeoDB', () => {
+        this.addRibbonIcon('puzzle', t('ribbon.syncNeoDB'), () => {
             this.startSync();
         });
 
         this.addCommand({
             id: 'sync-neodb',
-            name: 'Sync NeoDB Data',
+            name: t('command.syncData'),
             callback: () => {
                 this.startSync();
             },
@@ -35,7 +36,7 @@ export default class NeoDBPlugin extends Plugin {
 
         this.addCommand({
             id: 'sync-neodb-items',
-            name: 'Sync Shelf Items',
+            name: t('command.syncShelfItems'),
             callback: () => {
                 this.syncItems();
             },
@@ -43,7 +44,7 @@ export default class NeoDBPlugin extends Plugin {
 
         this.addCommand({
             id: 'sync-neodb-collections',
-            name: 'Sync Collections',
+            name: t('command.syncCollections'),
             callback: () => {
                 this.syncCollections();
             },
@@ -51,7 +52,7 @@ export default class NeoDBPlugin extends Plugin {
 
         this.addCommand({
             id: 'import-neodb-data',
-            name: 'Import NeoDB Export File',
+            name: t('command.importExportFile'),
             callback: () => {
                 new ImportModal(this.app, this).open();
             },
@@ -68,6 +69,7 @@ export default class NeoDBPlugin extends Plugin {
 
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+        setLocale(this.settings.locale || 'auto');
     }
 
     async saveSettings() {
@@ -117,11 +119,11 @@ export default class NeoDBPlugin extends Plugin {
 
     async startSync() {
         if (!this.settings.neodbApiKey) {
-            new Notice('Please configure your NeoDB API key in settings');
+            new Notice(t('notice.configureApiKey'));
             return;
         }
 
-        new Notice('Starting NeoDB sync...');
+        new Notice(t('notice.startingSync'));
         let syncedCount = 0;
 
         try {
@@ -144,21 +146,21 @@ export default class NeoDBPlugin extends Plugin {
             this.settings.lastSyncTime = new Date().toISOString();
             await this.saveSettings();
 
-            new Notice(`NeoDB sync completed. ${syncedCount} items synced.`);
+            new Notice(t('notice.syncComplete', { count: syncedCount }));
         } catch (err: any) {
             // eslint-disable-next-line no-undef
             console.error('NeoDB sync error:', err);
-            new Notice(`Sync failed: ${err.message}`);
+            new Notice(t('notice.syncFailed', { message: err.message }));
         }
     }
 
     async syncItems(): Promise<number> {
         debugLog('Starting syncItems...');
-        new Notice('Syncing shelf items...');
-        
+        new Notice(t('notice.syncingItems'));
+
         const marks = await this.api.getAllShelfItems();
         debugLog('Got marks:', marks.length, marks);
-        
+
         let count = 0;
 
         for (const mark of marks) {
@@ -166,7 +168,7 @@ export default class NeoDBPlugin extends Plugin {
             const data = prepareItemData(mark);
             const content = renderTemplate(this.settings.itemTemplate, data);
             const fileName = generateFileName(this.settings.fileNamePattern, data);
-            
+
             debugLog('Writing file:', fileName, 'to folder:', this.settings.notesFolder);
             const folderPath = `${this.settings.notesFolder}/items`;
             await this.writeNote(folderPath, fileName, content);
@@ -174,17 +176,17 @@ export default class NeoDBPlugin extends Plugin {
         }
 
         debugLog('syncItems complete, count:', count);
-        new Notice(`Synced ${count} shelf items`);
+        new Notice(t('notice.syncedItems', { count }));
         return count;
     }
 
     async syncCollections(): Promise<number> {
         debugLog('Starting syncCollections...');
-        new Notice('Syncing collections...');
-        
+        new Notice(t('notice.syncingCollections'));
+
         const collections = await this.api.getAllCollections();
         debugLog('Got collections:', collections.length, collections);
-        
+
         let count = 0;
 
         for (const collection of collections) {
@@ -200,12 +202,12 @@ export default class NeoDBPlugin extends Plugin {
         }
 
         debugLog('syncCollections complete, count:', count);
-        new Notice(`Synced ${count} collections`);
+        new Notice(t('notice.syncedCollections', { count }));
         return count;
     }
 
     async syncNotes(): Promise<number> {
-        new Notice('Syncing notes...');
+        new Notice(t('notice.syncingNotes'));
         const notes = await this.api.getAllNotes();
         let count = 0;
 
@@ -231,12 +233,12 @@ modified: {{last_modified_time}}
             count++;
         }
 
-        new Notice(`Synced ${count} notes`);
+        new Notice(t('notice.syncedNotes', { count }));
         return count;
     }
 
     async syncReviews(): Promise<number> {
-        new Notice('Syncing reviews...');
+        new Notice(t('notice.syncingReviews'));
         const reviews = await this.api.getAllReviews();
         let count = 0;
 
@@ -264,7 +266,7 @@ modified: {{last_modified_time}}
             count++;
         }
 
-        new Notice(`Synced ${count} reviews`);
+        new Notice(t('notice.syncedReviews', { count }));
         return count;
     }
 
@@ -272,7 +274,7 @@ modified: {{last_modified_time}}
         let count = 0;
 
         if (data.marks && data.marks.length > 0) {
-            new Notice('Importing marks...');
+            new Notice(t('notice.importingMarks'));
             for (const mark of data.marks) {
                 const itemData = prepareItemData(mark);
                 const content = renderTemplate(this.settings.itemTemplate, itemData);
@@ -285,7 +287,7 @@ modified: {{last_modified_time}}
         }
 
         if (data.collections && data.collections.length > 0) {
-            new Notice('Importing collections...');
+            new Notice(t('notice.importingCollections'));
             for (const collection of data.collections) {
                 const collectionData = prepareCollectionData(collection, []);
                 const content = renderTemplate(this.settings.collectionTemplate, collectionData);
@@ -298,7 +300,7 @@ modified: {{last_modified_time}}
         }
 
         if (data.notes && data.notes.length > 0) {
-            new Notice('Importing notes...');
+            new Notice(t('notice.importingNotes'));
             for (const note of data.notes) {
                 const noteData = prepareNoteData(note);
                 const template = `---
@@ -323,7 +325,7 @@ modified: {{last_modified_time}}
         }
 
         if (data.reviews && data.reviews.length > 0) {
-            new Notice('Importing reviews...');
+            new Notice(t('notice.importingReviews'));
             for (const review of data.reviews) {
                 const reviewData = prepareReviewData(review);
                 const template = `---
@@ -366,16 +368,16 @@ class ImportModal extends Modal {
 
     onOpen() {
         const { contentEl } = this;
-        contentEl.createEl('h2', { text: 'Import NeoDB Data' });
+        contentEl.createEl('h2', { text: t('modal.import.title') });
 
         contentEl.createEl('p', {
-            text: 'Paste your NeoDB exported JSON data below:',
+            text: t('modal.import.instruction'),
         });
 
         new Setting(contentEl)
-            .setName('JSON Data')
+            .setName(t('modal.import.jsonData'))
             .addTextArea(text => {
-                text.setPlaceholder('Paste JSON here...')
+                text.setPlaceholder(t('modal.import.placeholder'))
                     .setValue(this.importText)
                     .onChange(value => {
                         this.importText = value;
@@ -386,20 +388,20 @@ class ImportModal extends Modal {
 
         new Setting(contentEl)
             .addButton(button => button
-                .setButtonText('Import')
+                .setButtonText(t('modal.import.import'))
                 .setCta()
                 .onClick(async () => {
                     try {
                         const data = JSON.parse(this.importText) as NeoDBImportData;
                         const count = await this.plugin.importData(data);
-                        new Notice(`Imported ${count} items successfully`);
+                        new Notice(t('notice.importSuccess', { count }));
                         this.close();
                     } catch (error: any) {
-                        new Notice(`Import failed: ${error.message}`);
+                        new Notice(t('notice.importFailed', { message: error.message }));
                     }
                 }))
             .addButton(button => button
-                .setButtonText('Cancel')
+                .setButtonText(t('modal.import.cancel'))
                 .onClick(() => {
                     this.close();
                 }));

@@ -9,6 +9,7 @@ import {
     NeoDBProfile,
     ShelfType
 } from './types';
+import { t } from './i18n';
 
 interface PaginatedResponse<T> {
     data: T[];
@@ -109,7 +110,7 @@ export class NeoDBAPI {
             let typeCount = 0;
 
             debugLog(`Fetching shelf type: ${type}`);
-            new Notice(`Fetching ${type} items...`);
+            new Notice(t('notice.fetchingShelf', { type }));
 
             while (hasMore) {
                 try {
@@ -134,7 +135,7 @@ export class NeoDBAPI {
             }
             
             if (typeCount > 0) {
-                new Notice(`Fetched ${typeCount} ${type} items`);
+                new Notice(t('notice.fetchedShelf', { count: typeCount, type }));
             }
         }
 
@@ -155,7 +156,7 @@ export class NeoDBAPI {
         let hasMore = true;
 
         debugLog('Fetching all collections');
-        new Notice('Fetching collections...');
+        new Notice(t('notice.fetchingCollections'));
 
         while (hasMore) {
             try {
@@ -179,9 +180,9 @@ export class NeoDBAPI {
 
         debugLog(`Total collections: ${allCollections.length}`);
         if (allCollections.length === 0) {
-            new Notice('No collections found');
+            new Notice(t('notice.noCollections'));
         } else {
-            new Notice(`Fetched ${allCollections.length} collections`);
+            new Notice(t('notice.fetchedCollections', { count: allCollections.length }));
         }
         return allCollections;
     }
@@ -231,7 +232,7 @@ export class NeoDBAPI {
         let hasMore = true;
 
         debugLog('Fetching all reviews');
-        new Notice('Fetching reviews...');
+        new Notice(t('notice.fetchingReviews'));
 
         while (hasMore) {
             try {
@@ -255,9 +256,9 @@ export class NeoDBAPI {
 
         debugLog(`Total reviews: ${allReviews.length}`);
         if (allReviews.length === 0) {
-            new Notice('No reviews found');
+            new Notice(t('notice.noReviews'));
         } else {
-            new Notice(`Fetched ${allReviews.length} reviews`);
+            new Notice(t('notice.fetchedReviews', { count: allReviews.length }));
         }
         return allReviews;
     }
@@ -268,7 +269,7 @@ export class NeoDBAPI {
 
     async getAllNotes(): Promise<NeoDBNote[]> {
         debugLog('Notes API not fully supported - returning empty array');
-        new Notice('Notes sync not yet supported - use item marks instead');
+        new Notice(t('notice.notesNotSupported'));
         return [];
     }
 }

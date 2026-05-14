@@ -1,3 +1,5 @@
+import { getCurrentLocale } from './i18n';
+
 export type ItemType = 'book' | 'movie' | 'tv' | 'music' | 'game' | 'podcast';
 
 export type ShelfType = 'wishlist' | 'progress' | 'complete' | 'dropped';
@@ -106,7 +108,42 @@ export interface NeoDBImportData {
   notes?: NeoDBNote[];
 }
 
-export const DEFAULT_TEMPLATE = `---
+export const DEFAULT_ITEM_TEMPLATE_EN = `---
+type: {{type}}
+neodb_uuid: {{uuid}}
+rating: {{rating}}
+shelf: {{shelf_type}}
+tags:
+{{#tags}}
+  - {{.}}
+{{/tags}}
+created: {{created_time}}
+modified: {{last_modified_time}}
+neodb_url: {{url}}
+---
+
+# {{title}}
+
+{{#cover_image_url}}
+![cover]({{cover_image_url}})
+{{/cover_image_url}}
+
+{{#author}}
+**Author**: {{.}}
+{{/author}}
+
+{{#description}}
+## Description
+{{description}}
+{{/description}}
+
+{{#comment}}
+## My notes
+{{comment}}
+{{/comment}}
+`;
+
+export const DEFAULT_ITEM_TEMPLATE_ZH = `---
 type: {{type}}
 neodb_uuid: {{uuid}}
 rating: {{rating}}
@@ -141,7 +178,28 @@ neodb_url: {{url}}
 {{/comment}}
 `;
 
-export const DEFAULT_COLLECTION_TEMPLATE = `---
+export const DEFAULT_COLLECTION_TEMPLATE_EN = `---
+neodb_collection_uuid: {{uuid}}
+items_count: {{items_count}}
+created: {{created_time}}
+modified: {{last_modified_time}}
+neodb_url: {{url}}
+---
+
+# {{title}}
+
+{{#description}}
+## Description
+{{description}}
+{{/description}}
+
+## Items
+{{#items}}
+{{order}}. [[{{item_title}}]]
+{{/items}}
+`;
+
+export const DEFAULT_COLLECTION_TEMPLATE_ZH = `---
 neodb_collection_uuid: {{uuid}}
 items_count: {{items_count}}
 created: {{created_time}}
@@ -161,3 +219,14 @@ neodb_url: {{url}}
 {{order}}. [[{{item_title}}]]
 {{/items}}
 `;
+
+export function getDefaultItemTemplate(): string {
+    return getCurrentLocale() === 'zh-CN' ? DEFAULT_ITEM_TEMPLATE_ZH : DEFAULT_ITEM_TEMPLATE_EN;
+}
+
+export function getDefaultCollectionTemplate(): string {
+    return getCurrentLocale() === 'zh-CN' ? DEFAULT_COLLECTION_TEMPLATE_ZH : DEFAULT_COLLECTION_TEMPLATE_EN;
+}
+
+export const DEFAULT_TEMPLATE = getDefaultItemTemplate();
+export const DEFAULT_COLLECTION_TEMPLATE = getDefaultCollectionTemplate();
