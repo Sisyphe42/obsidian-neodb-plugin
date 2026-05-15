@@ -18,17 +18,39 @@ interface PaginatedResponse<T> {
     next?: string | null;
 }
 
+interface ApiErrorBody {
+    detail?: string;
+    error?: string;
+}
+
 let debugMode = false;
 
 export function setDebugMode(enabled: boolean) {
     debugMode = enabled;
 }
 
-export function debugLog(...args: any[]) {
+export function debugLog(...args: unknown[]) {
     if (debugMode) {
         // eslint-disable-next-line no-undef -- console is a global in Obsidian's runtime
         console.log('[NeoDB Debug]', ...args);
     }
+}
+
+function isApiErrorBody(value: unknown): value is ApiErrorBody {
+    return typeof value === 'object' && value !== null
+        && ('detail' in value || 'error' in value);
+}
+
+function extractErrorMessage(err: unknown, fallback = 'Unknown error'): string {
+    if (err instanceof Error) {
+        const maybeJson = (err as { json?: unknown }).json;
+        if (isApiErrorBody(maybeJson)) {
+            return maybeJson.detail ?? maybeJson.error ?? err.message ?? fallback;
+        }
+        return err.message || fallback;
+    }
+    if (typeof err === 'string') return err;
+    return fallback;
 }
 
 export class NeoDBAPI {
@@ -45,11 +67,11 @@ export class NeoDBAPI {
         this.apiKey = apiKey;
     }
 
-    private async request<T>(endpoint: string, method: string = 'GET', data?: any): Promise<T> {
+    private async request<T>(endpoint: string, method: string = 'GET', data?: unknown): Promise<T> {
         const url = `${this.domain}/api${endpoint}`;
-        
+
         debugLog('Request:', method, url);
-        
+
         const options: RequestUrlParam = {
             url,
             method,
@@ -59,7 +81,7 @@ export class NeoDBAPI {
             },
         };
 
-        if (data) {
+        if (data !== undefined) {
             options.body = JSON.stringify(data);
             debugLog('Request body:', data);
         }
@@ -68,16 +90,19 @@ export class NeoDBAPI {
             const response = await requestUrl(options);
             debugLog('Response status:', response.status);
             debugLog('Response data:', response.json);
-            
+
             if (response.status >= 400) {
-                const errorData = response.json;
-                throw new Error(errorData?.detail || errorData?.error || `HTTP ${response.status}`);
+                const body: unknown = response.json;
+                const message = isApiErrorBody(body)
+                    ? (body.detail ?? body.error ?? `HTTP ${response.status}`)
+                    : `HTTP ${response.status}`;
+                throw new Error(message);
             }
             return response.json as T;
-        } catch (err: any) {
+        } catch (err: unknown) {
             // eslint-disable-next-line no-undef -- console is a global in Obsidian's runtime
             console.error('[NeoDB Error]', err, 'URL:', url);
-            const errorMessage = err.json?.detail || err.json?.error || err.message || 'Unknown error';
+            const errorMessage = extractErrorMessage(err);
             if (debugMode) {
                 new Notice(`[NeoDB Debug] Error: ${errorMessage}\nURL: ${url}`, 8000);
             }
@@ -102,7 +127,7 @@ export class NeoDBAPI {
     async getAllShelfItems(shelfType?: ShelfType): Promise<NeoDBUserMark[]> {
         const allItems: NeoDBUserMark[] = [];
         const types: ShelfType[] = shelfType ? [shelfType] : ['wishlist', 'progress', 'complete', 'dropped'];
-        
+
         for (const type of types) {
             let page = 1;
             const pageSize = 50;
@@ -122,18 +147,18 @@ export class NeoDBAPI {
                         typeCount += items.length;
                         debugLog(`Page ${page}: ${items.length} items`);
                     }
-                    
+
                     if (items.length === pageSize && response.pages && page < response.pages) {
                         page++;
                     } else {
                         hasMore = false;
                     }
-                } catch (error: any) {
-                    debugLog(`Error fetching ${type}:`, error.message);
+                } catch (error: unknown) {
+                    debugLog(`Error fetching ${type}:`, extractErrorMessage(error));
                     hasMore = false;
                 }
             }
-            
+
             if (typeCount > 0) {
                 new Notice(t('notice.fetchedShelf', { count: typeCount, type }));
             }
@@ -166,14 +191,14 @@ export class NeoDBAPI {
                     allCollections.push(...items);
                     debugLog(`Collections page ${page}: ${items.length} items`);
                 }
-                
+
                 if (items.length === pageSize && response.pages && page < response.pages) {
                     page++;
                 } else {
                     hasMore = false;
                 }
-            } catch (error: any) {
-                debugLog('Error fetching collections:', error.message);
+            } catch (error: unknown) {
+                debugLog('Error fetching collections:', extractErrorMessage(error));
                 hasMore = false;
             }
         }
@@ -205,7 +230,7 @@ export class NeoDBAPI {
                 if (items.length > 0) {
                     allItems.push(...items);
                 }
-                
+
                 if (items.length === pageSize && response.pages && page < response.pages) {
                     page++;
                 } else {
@@ -242,14 +267,14 @@ export class NeoDBAPI {
                     allReviews.push(...items);
                     debugLog(`Reviews page ${page}: ${items.length} items`);
                 }
-                
+
                 if (items.length === pageSize && response.pages && page < response.pages) {
                     page++;
                 } else {
                     hasMore = false;
                 }
-            } catch (error: any) {
-                debugLog('Error fetching reviews:', error.message);
+            } catch (error: unknown) {
+                debugLog('Error fetching reviews:', extractErrorMessage(error));
                 hasMore = false;
             }
         }

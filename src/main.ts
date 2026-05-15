@@ -13,6 +13,12 @@ import {
 import { NeoDBImportData } from './types';
 import { t, setLocale } from './i18n';
 
+function errorMessage(err: unknown, fallback = 'Unknown error'): string {
+    if (err instanceof Error) return err.message || fallback;
+    if (typeof err === 'string') return err;
+    return fallback;
+}
+
 export default class NeoDBPlugin extends Plugin {
     settings: NeoDBSettings;
     api: NeoDBAPI;
@@ -147,10 +153,10 @@ export default class NeoDBPlugin extends Plugin {
             await this.saveSettings();
 
             new Notice(t('notice.syncComplete', { count: syncedCount }));
-        } catch (err: any) {
+        } catch (err: unknown) {
             // eslint-disable-next-line no-undef -- console is a global in Obsidian's runtime
             console.error('NeoDB sync error:', err);
-            new Notice(t('notice.syncFailed', { message: err.message }));
+            new Notice(t('notice.syncFailed', { message: errorMessage(err) }));
         }
     }
 
@@ -390,15 +396,17 @@ class ImportModal extends Modal {
             .addButton(button => button
                 .setButtonText(t('modal.import.import'))
                 .setCta()
-                .onClick(async () => {
-                    try {
-                        const data = JSON.parse(this.importText) as NeoDBImportData;
-                        const count = await this.plugin.importData(data);
-                        new Notice(t('notice.importSuccess', { count }));
-                        this.close();
-                    } catch (error: any) {
-                        new Notice(t('notice.importFailed', { message: error.message }));
-                    }
+                .onClick(() => {
+                    void (async () => {
+                        try {
+                            const data = JSON.parse(this.importText) as NeoDBImportData;
+                            const count = await this.plugin.importData(data);
+                            new Notice(t('notice.importSuccess', { count }));
+                            this.close();
+                        } catch (error: unknown) {
+                            new Notice(t('notice.importFailed', { message: errorMessage(error) }));
+                        }
+                    })();
                 }))
             .addButton(button => button
                 .setButtonText(t('modal.import.cancel'))

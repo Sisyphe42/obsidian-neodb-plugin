@@ -6,6 +6,8 @@ import {
     NeoDBReview,
 } from './types';
 
+export type TemplateData = Record<string, unknown>;
+
 export function sanitizeFileName(name: string): string {
     return name
         .replace(/[\\/:*?"<>|]/g, '')
@@ -14,54 +16,54 @@ export function sanitizeFileName(name: string): string {
         .substring(0, 200);
 }
 
-export function renderTemplate(template: string, data: Record<string, any>): string {
+function isEmptyValue(value: unknown): boolean {
+    if (value === undefined || value === null || value === '') return true;
+    if (Array.isArray(value) && value.length === 0) return true;
+    return false;
+}
+
+function stringifyScalar(value: unknown): string {
+    if (value === undefined || value === null) return '';
+    if (Array.isArray(value)) return value.join(', ');
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export function renderTemplate(template: string, data: object): string {
+    const record = data as Record<string, unknown>;
     let result = template;
 
     const conditionalRegex = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
-    result = result.replace(conditionalRegex, (_, key, content) => {
-        const value = data[key];
-        if (value === undefined || value === null || value === '' || 
-            (Array.isArray(value) && value.length === 0)) {
-            return '';
-        }
-        return content;
+    result = result.replace(conditionalRegex, (_match, key: string, content: string) => {
+        return isEmptyValue(record[key]) ? '' : content;
     });
 
     const arrayRegex = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
-    result = result.replace(arrayRegex, (_, key, content) => {
-        const value = data[key];
-        if (Array.isArray(value)) {
-            return value.map(item => {
-                if (typeof item === 'object') {
-                    let itemContent = content;
-                    Object.keys(item).forEach(k => {
-                        itemContent = itemContent.replace(
-                            new RegExp(`\\{\\{\\.${k}\\}\\}`, 'g'),
-                            String(item[k] || '')
-                        );
-                    });
-                    itemContent = itemContent.replace(/\{\{\.\}\}/g, String(item));
-                    return itemContent;
+    result = result.replace(arrayRegex, (_match, key: string, content: string) => {
+        const value = record[key];
+        if (!Array.isArray(value)) return '';
+        return value.map(item => {
+            if (isPlainObject(item)) {
+                let itemContent = content;
+                for (const k of Object.keys(item)) {
+                    itemContent = itemContent.replace(
+                        new RegExp(`\\{\\{\\.${k}\\}\\}`, 'g'),
+                        stringifyScalar(item[k])
+                    );
                 }
-                return content.replace(/\{\{\.\}\}/g, String(item));
-            }).join('');
-        }
-        return '';
+                return itemContent.replace(/\{\{\.\}\}/g, stringifyScalar(item));
+            }
+            return content.replace(/\{\{\.\}\}/g, stringifyScalar(item));
+        }).join('');
     });
 
     const simpleValueRegex = /\{\{(\w+)\}\}/g;
-    result = result.replace(simpleValueRegex, (_, key) => {
-        const value = data[key];
-        if (value === undefined || value === null) {
-            return '';
-        }
-        if (Array.isArray(value)) {
-            return value.join(', ');
-        }
-        if (typeof value === 'object') {
-            return JSON.stringify(value);
-        }
-        return String(value);
+    result = result.replace(simpleValueRegex, (_match, key: string) => {
+        return stringifyScalar(record[key]);
     });
 
     result = result.replace(/\n{3,}/g, '\n\n');
@@ -203,16 +205,16 @@ export function prepareReviewData(review: NeoDBReview): ReviewTemplateData {
     };
 }
 
-export function generateFileName(pattern: string, data: Record<string, any>): string {
+export function generateFileName(pattern: string, data: object): string {
+    const record = data as Record<string, unknown>;
     let fileName = pattern;
 
-    Object.keys(data).forEach(key => {
-        const value = data[key];
-        if (value !== undefined && value !== null) {
-            const stringValue = Array.isArray(value) ? value.join(', ') : String(value);
-            fileName = fileName.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), stringValue);
-        }
-    });
+    for (const key of Object.keys(record)) {
+        const value = record[key];
+        if (value === undefined || value === null) continue;
+        const stringValue = Array.isArray(value) ? value.join(', ') : String(value);
+        fileName = fileName.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), stringValue);
+    }
 
     return sanitizeFileName(fileName);
 }
