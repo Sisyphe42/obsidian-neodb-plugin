@@ -24,9 +24,13 @@ function isEmptyValue(value: unknown): boolean {
 
 function stringifyScalar(value: unknown): string {
     if (value === undefined || value === null) return '';
-    if (Array.isArray(value)) return value.join(', ');
+    if (Array.isArray(value)) return value.map(stringifyScalar).join(', ');
     if (typeof value === 'object') return JSON.stringify(value);
-    return String(value);
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+        return String(value);
+    }
+    return '';
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -212,7 +216,7 @@ export function generateFileName(pattern: string, data: object): string {
     for (const key of Object.keys(record)) {
         const value = record[key];
         if (value === undefined || value === null) continue;
-        const stringValue = Array.isArray(value) ? value.join(', ') : String(value);
+        const stringValue = stringifyScalar(value);
         fileName = fileName.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), stringValue);
     }
 

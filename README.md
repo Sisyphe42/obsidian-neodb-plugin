@@ -1,6 +1,6 @@
-# obsidian-neodb-plugin
+# NeoDB Sync
 
-Sync [NeoDB](https://neodb.net/) data to Obsidian notes.
+Sync [NeoDB](https://neodb.net/) data to your vault.
 
 ## Features
 
@@ -13,7 +13,7 @@ Sync [NeoDB](https://neodb.net/) data to Obsidian notes.
 ## Installation
 
 1. Download `main.js`, `manifest.json`, `styles.css`
-2. Place in `.obsidian/plugins/obsidian-neodb-plugin/`
+2. Place in `.obsidian/plugins/neodb-sync/`
 3. Enable in Obsidian settings
 
 ## Configuration
@@ -25,8 +25,8 @@ Sync [NeoDB](https://neodb.net/) data to Obsidian notes.
 
 ## Usage
 
-- Click 🧩 ribbon icon or run "Sync NeoDB Data" command
-- Use commands: "Sync Shelf Items", "Sync Collections"
+- Click the ribbon icon or run "Sync NeoDB data" command
+- Use commands: "Sync shelf items", "Sync collections"
 
 ## Acknowledgements
 

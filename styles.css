@@ -17,8 +17,9 @@
     font-size: var(--font-ui-smaller);
 }
 
-.debug-enabled {
-    background-color: var(--text-error) !important;
+.checkbox-container.debug-enabled,
+.checkbox-container.is-enabled.debug-enabled {
+    background-color: var(--text-error);
 }
 
 .neodb-template-editor {
