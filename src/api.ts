@@ -26,7 +26,7 @@ export function setDebugMode(enabled: boolean) {
 
 export function debugLog(...args: any[]) {
     if (debugMode) {
-        // eslint-disable-next-line no-undef
+        // eslint-disable-next-line no-undef -- console is a global in Obsidian's runtime
         console.log('[NeoDB Debug]', ...args);
     }
 }
@@ -75,7 +75,7 @@ export class NeoDBAPI {
             }
             return response.json as T;
         } catch (err: any) {
-            // eslint-disable-next-line no-undef
+            // eslint-disable-next-line no-undef -- console is a global in Obsidian's runtime
             console.error('[NeoDB Error]', err, 'URL:', url);
             const errorMessage = err.json?.detail || err.json?.error || err.message || 'Unknown error';
             if (debugMode) {

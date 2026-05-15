@@ -23,14 +23,14 @@ export default class NeoDBPlugin extends Plugin {
         setDebugMode(this.settings.debugMode);
 
         this.addRibbonIcon('puzzle', t('ribbon.syncNeoDB'), () => {
-            this.startSync();
+            void this.startSync();
         });
 
         this.addCommand({
             id: 'sync-neodb',
             name: t('command.syncData'),
             callback: () => {
-                this.startSync();
+                void this.startSync();
             },
         });
 
@@ -38,7 +38,7 @@ export default class NeoDBPlugin extends Plugin {
             id: 'sync-neodb-items',
             name: t('command.syncShelfItems'),
             callback: () => {
-                this.syncItems();
+                void this.syncItems();
             },
         });
 
@@ -46,7 +46,7 @@ export default class NeoDBPlugin extends Plugin {
             id: 'sync-neodb-collections',
             name: t('command.syncCollections'),
             callback: () => {
-                this.syncCollections();
+                void this.syncCollections();
             },
         });
 
@@ -62,7 +62,7 @@ export default class NeoDBPlugin extends Plugin {
 
         if (this.settings.syncOnStartup && this.settings.neodbApiKey) {
             this.app.workspace.onLayoutReady(() => {
-                this.startSync();
+                void this.startSync();
             });
         }
     }
@@ -148,7 +148,7 @@ export default class NeoDBPlugin extends Plugin {
 
             new Notice(t('notice.syncComplete', { count: syncedCount }));
         } catch (err: any) {
-            // eslint-disable-next-line no-undef
+            // eslint-disable-next-line no-undef -- console is a global in Obsidian's runtime
             console.error('NeoDB sync error:', err);
             new Notice(t('notice.syncFailed', { message: err.message }));
         }

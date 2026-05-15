@@ -2,7 +2,7 @@
   "id": "neodb-sync",
   "name": "NeoDB Sync",
   "version": "0.1.0",
-  "minAppVersion": "0.15.0",
+  "minAppVersion": "1.4.10",
   "description": "Sync your NeoDB collection data to your vault.",
   "author": "sisyphe42",
   "authorUrl": "https://github.com/sisyphe42",

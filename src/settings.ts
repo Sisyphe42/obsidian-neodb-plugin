@@ -86,7 +86,7 @@ export class NeoDBSettingTab extends PluginSettingTab {
                 .setButtonText(t('settings.domain.open'))
                 .onClick(() => {
                     const domain = this.plugin.settings.neodbDomain || 'https://neodb.social';
-                    // eslint-disable-next-line no-undef
+                    // eslint-disable-next-line no-undef -- window is a global in Obsidian's runtime
                     window.open(domain, '_blank');
                 }))
             .addText(text => text
@@ -130,7 +130,7 @@ export class NeoDBSettingTab extends PluginSettingTab {
                     .setValue(this.plugin.settings.notesFolder);
                 new FolderSuggest(this.app, text.inputEl, (folder) => {
                     this.plugin.settings.notesFolder = folder;
-                    this.plugin.saveSettings();
+                    void this.plugin.saveSettings();
                 });
                 text.onChange(async (value) => {
                     this.plugin.settings.notesFolder = value;
@@ -308,8 +308,8 @@ export class NeoDBSettingTab extends PluginSettingTab {
         });
         textarea.value = getValue();
         textarea.spellcheck = false;
-        textarea.addEventListener('change', async () => {
-            await setValue(textarea.value);
+        textarea.addEventListener('change', () => {
+            void setValue(textarea.value);
         });
     }
 }
@@ -421,9 +421,11 @@ class TemplateEditorModal extends Modal {
         cancelBtn.addEventListener('click', () => this.close());
 
         const saveBtn = buttonRow.createEl('button', { text: t('modal.templateEditor.save'), cls: 'mod-cta' });
-        saveBtn.addEventListener('click', async () => {
-            await this.onSave(this.value);
-            this.close();
+        saveBtn.addEventListener('click', () => {
+            void (async () => {
+                await this.onSave(this.value);
+                this.close();
+            })();
         });
     }
 
@@ -489,9 +491,11 @@ class ConfirmModal extends Modal {
             text: t('modal.templateEditor.reset'),
             cls: 'mod-warning',
         });
-        confirmBtn.addEventListener('click', async () => {
-            await this.onConfirm();
-            this.close();
+        confirmBtn.addEventListener('click', () => {
+            void (async () => {
+                await this.onConfirm();
+                this.close();
+            })();
         });
     }
 
@@ -590,7 +594,7 @@ function insertAtCursor(textarea: HTMLTextAreaElement, text: string): void {
 }
 
 function copyToClipboard(text: string): void {
-    // eslint-disable-next-line no-undef
+    // eslint-disable-next-line no-undef -- navigator is a global in Obsidian's runtime
     const nav = (typeof navigator !== 'undefined') ? navigator : undefined;
     if (nav?.clipboard?.writeText) {
         nav.clipboard.writeText(text).catch(() => {});
