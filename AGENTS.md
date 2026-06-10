@@ -4,7 +4,7 @@ Codebase guidance for agentic coding agents working on obsidian-neodb-plugin.
 
 ## Project Overview
 
-Obsidian plugin that syncs NeoDB collection data (books, movies, music, games, etc.) to Obsidian notes. Supports shelf items, collections, notes, and reviews with customizable templates.
+Obsidian plugin that syncs NeoDB collection data (books, movies, music, games, etc.) to Obsidian notes. Supports shelf items, collections, notes, and reviews with customizable templates, sync preview, progress/cancel controls, incremental sync, type-based item folders, account connection state, and remote/local library stats.
 
 ## Build Commands
 
@@ -90,16 +90,16 @@ npm install eslint-plugin-obsidianmd --save-dev
 ### Error Handling
 
 - Use try-catch blocks for async operations
-- Catch errors with `error: any` type annotation
+- Prefer `unknown` for caught errors and normalize messages through helper functions
 - Log errors to console with `console.error`
 - Show user-friendly messages via `new Notice()`
 - Example:
   ```typescript
   try {
       await someAsyncOperation();
-  } catch (error: any) {
+  } catch (error: unknown) {
       console.error('Operation failed:', error);
-      new Notice(`Failed: ${error.message}`);
+      new Notice(`Failed: ${errorMessage(error)}`);
   }
   ```
 
@@ -110,16 +110,29 @@ npm install eslint-plugin-obsidianmd --save-dev
 - Use `this.app` for vault operations
 - Use `this.settings` for plugin settings
 - Register commands with `this.addCommand()`
+- Command IDs should be short and should not repeat the plugin ID. Obsidian scopes command IDs by plugin.
 - Register ribbon icons with `this.addRibbonIcon()`
 - Use `await this.loadData()` and `await this.saveData()` for persistence
+- Use `window.setTimeout()` instead of bare `setTimeout()` for popout window compatibility
+- `PluginSettingTab.display()` is still required by the current `obsidian` package version. Keep repeated internal rerenders behind helper methods such as `refresh()`.
 
 ### API Patterns
 
 - Use Obsidian's `requestUrl()` for HTTP requests (not fetch)
 - NeoDB API returns `{data: Array, pages: number, count: number}` structure
-- Handle pagination using `pages` field
-- Show progress notices for long operations
-- Default page size: 50
+- Handle pagination using `pages` and `next` fields
+- Keep page size configurable through settings; default page size is 50
+- Use retry handling for transient request failures
+- Long sync operations should update the sync progress modal across fetch, plan, and write phases
+- Optional/stat-only API requests should degrade gracefully and avoid noisy debug notices
+
+### Settings UI Patterns
+
+- Account connection is handled in the account panel, not as separate domain/API key settings
+- Persist connected account metadata in `connectedAccount`
+- Keep API key hidden in the login form and clear it on logout
+- Remote library stats are refreshed during account connection; local stats are calculated from vault files when settings render
+- Keep personal Claude Code state ignored with `.claude/settings.local.json`, not the entire `.claude/` directory
 
 ### File Operations
 
@@ -164,12 +177,15 @@ src/
 3. Add template preparation in `src/templates.ts`
 4. Add sync method in `src/main.ts`
 5. Add setting toggle in `src/settings.ts`
+6. Add i18n strings in both `src/i18n/locales/en.ts` and `src/i18n/locales/zh-CN.ts`
+7. Include progress/cancel hooks if the operation can take noticeable time
 
 ### Adding a new command
 
 1. Add command in `main.ts` using `this.addCommand()`
 2. Add corresponding method in plugin class
 3. Update settings if user configuration needed
+4. Use a scoped-but-not-duplicative command ID, such as `preview-sync`, not `preview-neodb-sync`
 
 ## TODO
 

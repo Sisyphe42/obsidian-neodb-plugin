@@ -105,6 +105,10 @@ export class NeoDBSettingTab extends PluginSettingTab {
     }
 
     display(): void {
+        this.refresh();
+    }
+
+    private refresh(): void {
         const { containerEl } = this;
         containerEl.empty();
 
@@ -122,7 +126,7 @@ export class NeoDBSettingTab extends PluginSettingTab {
                         this.plugin.settings.locale = locale;
                         setLocale(locale);
                         await this.plugin.saveSettings();
-                        this.display();
+                        this.refresh();
                     });
             });
 
@@ -392,7 +396,7 @@ export class NeoDBSettingTab extends PluginSettingTab {
             this.plugin.settings.connectedAccount = this.toConnectedAccount(profile, remoteStats);
             await this.plugin.saveSettings();
             new Notice(t('notice.connectedAs', { name: profile.display_name }));
-            this.display();
+            this.refresh();
         } catch {
             this.plugin.api.updateConfig(
                 previousDomain,
@@ -457,7 +461,7 @@ export class NeoDBSettingTab extends PluginSettingTab {
         this.plugin.settings.neodbApiKey = '';
         this.plugin.settings.connectedAccount = null;
         await this.plugin.saveSettings();
-        this.display();
+        this.refresh();
     }
 
     private renderLibraryStats(
@@ -675,7 +679,7 @@ export class NeoDBSettingTab extends PluginSettingTab {
             .onClick(() => {
                 new TemplateEditorModal(this.app, kind, getValue(), async (newValue) => {
                     await setValue(newValue);
-                    this.display();
+                    this.refresh();
                 }).open();
             }));
 
@@ -689,7 +693,7 @@ export class NeoDBSettingTab extends PluginSettingTab {
                     async () => {
                         await setValue(getDefault());
                         new Notice(t('notice.templateReset'));
-                        this.display();
+                        this.refresh();
                     }
                 ).open();
             }));

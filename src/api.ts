@@ -97,8 +97,8 @@ function normalizePositiveInteger(value: number | undefined, fallback: number): 
 }
 
 function sleep(ms: number): Promise<void> {
-    // eslint-disable-next-line no-undef -- setTimeout is a global in Obsidian's runtime
-    return new Promise(resolve => setTimeout(resolve, ms));
+    // eslint-disable-next-line no-undef -- window is a global in Obsidian's runtime
+    return new Promise(resolve => window.setTimeout(resolve, ms));
 }
 
 function ensureNotCancelled(options?: FetchAllOptions): void {

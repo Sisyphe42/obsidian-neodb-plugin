@@ -111,7 +111,7 @@ export default class NeoDBPlugin extends Plugin {
         });
 
         this.addCommand({
-            id: 'preview-neodb-sync',
+            id: 'preview-sync',
             name: t('command.previewSync'),
             callback: () => {
                 void this.previewSync();
@@ -119,7 +119,7 @@ export default class NeoDBPlugin extends Plugin {
         });
 
         this.addCommand({
-            id: 'cancel-neodb-sync',
+            id: 'cancel-sync',
             name: t('command.cancelSync'),
             callback: () => {
                 this.cancelSync();
@@ -707,8 +707,8 @@ export default class NeoDBPlugin extends Plugin {
     }
 
     private async yieldToUi(): Promise<void> {
-        // eslint-disable-next-line no-undef -- setTimeout is a global in Obsidian's runtime
-        await new Promise(resolve => setTimeout(resolve, 0));
+        // eslint-disable-next-line no-undef -- window is a global in Obsidian's runtime
+        await new Promise(resolve => window.setTimeout(resolve, 0));
     }
 }
 
