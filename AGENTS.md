@@ -175,19 +175,19 @@ src/
 
 ### Features
 
-- [ ] **i18n**: Internationalization support for multiple languages (Chinese, English, etc.)
-- [ ] **Template Advanced Customization**: Allow users to create custom templates with more variables and conditional logic
-- [ ] **Type-based Folder Organization**: Option to organize items into subfolders by type (movie/, book/, music/, game/, etc.)
-- [ ] **Sync Preview**: Preview what will be synced before executing
-- [ ] **Progress Bar**: Visual progress indicator during sync operations
-- [ ] **Manual Interruption**: Allow users to cancel ongoing sync operations
+- [x] **i18n**: Internationalization support for multiple languages (Chinese, English, etc.)
+- [x] **Template Advanced Customization**: Allow users to create custom templates with more variables and conditional logic
+- [x] **Type-based Folder Organization**: Option to organize items into subfolders by type (movie/, book/, music/, game/, etc.)
+- [x] **Sync Preview**: Preview what will be synced before executing
+- [x] **Progress Bar**: Visual progress indicator during sync operations
+- [x] **Manual Interruption**: Allow users to cancel ongoing sync operations
 
 ### Improvements
 
-- [ ] Notes API integration (currently not fully supported)
-- [ ] Incremental sync optimization
-- [ ] Error recovery and retry mechanism
-- [ ] Batch operations support
+- [x] Notes API integration (currently not fully supported)
+- [x] Incremental sync optimization
+- [x] Error recovery and retry mechanism
+- [x] Batch operations support
 
 ## References
 

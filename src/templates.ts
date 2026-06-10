@@ -1,4 +1,4 @@
-import {
+import type {
     NeoDBUserMark,
     NeoDBCollection,
     NeoDBCollectionItem,
@@ -37,32 +37,31 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function renderArrayItem(content: string, item: unknown): string {
+    if (!isPlainObject(item)) {
+        return content.replace(/\{\{\.\}\}/g, stringifyScalar(item));
+    }
+
+    let itemContent = content;
+    for (const k of Object.keys(item)) {
+        const value = stringifyScalar(item[k]);
+        itemContent = itemContent
+            .replace(new RegExp(`\\{\\{\\.${k}\\}\\}`, 'g'), value)
+            .replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), value);
+    }
+    return itemContent.replace(/\{\{\.\}\}/g, stringifyScalar(item));
+}
+
 export function renderTemplate(template: string, data: object): string {
     const record = data as Record<string, unknown>;
     let result = template;
 
-    const conditionalRegex = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
-    result = result.replace(conditionalRegex, (_match, key: string, content: string) => {
-        return isEmptyValue(record[key]) ? '' : content;
-    });
-
-    const arrayRegex = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
-    result = result.replace(arrayRegex, (_match, key: string, content: string) => {
+    const sectionRegex = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
+    result = result.replace(sectionRegex, (_match, key: string, content: string) => {
         const value = record[key];
-        if (!Array.isArray(value)) return '';
-        return value.map(item => {
-            if (isPlainObject(item)) {
-                let itemContent = content;
-                for (const k of Object.keys(item)) {
-                    itemContent = itemContent.replace(
-                        new RegExp(`\\{\\{\\.${k}\\}\\}`, 'g'),
-                        stringifyScalar(item[k])
-                    );
-                }
-                return itemContent.replace(/\{\{\.\}\}/g, stringifyScalar(item));
-            }
-            return content.replace(/\{\{\.\}\}/g, stringifyScalar(item));
-        }).join('');
+        if (Array.isArray(value)) return value.map(item => renderArrayItem(content, item)).join('');
+        if (isPlainObject(value)) return renderArrayItem(content, value);
+        return isEmptyValue(value) ? '' : content.replace(/\{\{\.\}\}/g, stringifyScalar(value));
     });
 
     const simpleValueRegex = /\{\{(\w+)\}\}/g;
@@ -165,6 +164,8 @@ export interface NoteTemplateData {
     uuid: string;
     item_title: string;
     item_uuid: string;
+    item_type: string;
+    item_url: string;
     content: string;
     visibility: number;
     created_time: string;
@@ -176,6 +177,8 @@ export function prepareNoteData(note: NeoDBNote): NoteTemplateData {
         uuid: note.uuid,
         item_title: note.item.title,
         item_uuid: note.item.uuid,
+        item_type: note.item.type,
+        item_url: note.item.url,
         content: note.content,
         visibility: note.visibility,
         created_time: note.created_time,
@@ -187,6 +190,8 @@ export interface ReviewTemplateData {
     uuid: string;
     item_title: string;
     item_uuid: string;
+    item_type: string;
+    item_url: string;
     title?: string;
     content: string;
     rating?: number;
@@ -200,7 +205,9 @@ export function prepareReviewData(review: NeoDBReview): ReviewTemplateData {
         uuid: review.uuid,
         item_title: review.item.title,
         item_uuid: review.item.uuid,
-        title: review.title,
+        item_type: review.item.type,
+        item_url: review.item.url,
+        title: review.title || `Review - ${review.item.title}`,
         content: review.content,
         rating: review.rating,
         visibility: review.visibility,

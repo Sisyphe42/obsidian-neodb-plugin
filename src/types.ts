@@ -4,6 +4,8 @@ export type ItemType = 'book' | 'movie' | 'tv' | 'music' | 'game' | 'podcast';
 
 export type ShelfType = 'wishlist' | 'progress' | 'complete' | 'dropped';
 
+export const SHELF_TYPES: ShelfType[] = ['wishlist', 'progress', 'complete', 'dropped'];
+
 export interface NeoDBItem {
   uuid: string;
   title: string;
@@ -220,6 +222,68 @@ neodb_url: {{url}}
 {{/items}}
 `;
 
+export const DEFAULT_NOTE_TEMPLATE_EN = `---
+neodb_note_uuid: {{uuid}}
+item_title: {{item_title}}
+item_uuid: {{item_uuid}}
+item_type: {{item_type}}
+visibility: {{visibility}}
+created: {{created_time}}
+modified: {{last_modified_time}}
+---
+
+# Note on {{item_title}}
+
+{{content}}
+`;
+
+export const DEFAULT_NOTE_TEMPLATE_ZH = `---
+neodb_note_uuid: {{uuid}}
+item_title: {{item_title}}
+item_uuid: {{item_uuid}}
+item_type: {{item_type}}
+visibility: {{visibility}}
+created: {{created_time}}
+modified: {{last_modified_time}}
+---
+
+# 关于 {{item_title}} 的笔记
+
+{{content}}
+`;
+
+export const DEFAULT_REVIEW_TEMPLATE_EN = `---
+neodb_review_uuid: {{uuid}}
+item_title: {{item_title}}
+item_uuid: {{item_uuid}}
+item_type: {{item_type}}
+rating: {{rating}}
+visibility: {{visibility}}
+created: {{created_time}}
+modified: {{last_modified_time}}
+---
+
+# {{title}}
+
+{{content}}
+`;
+
+export const DEFAULT_REVIEW_TEMPLATE_ZH = `---
+neodb_review_uuid: {{uuid}}
+item_title: {{item_title}}
+item_uuid: {{item_uuid}}
+item_type: {{item_type}}
+rating: {{rating}}
+visibility: {{visibility}}
+created: {{created_time}}
+modified: {{last_modified_time}}
+---
+
+# {{title}}
+
+{{content}}
+`;
+
 export function getDefaultItemTemplate(): string {
     return getCurrentLocale() === 'zh-CN' ? DEFAULT_ITEM_TEMPLATE_ZH : DEFAULT_ITEM_TEMPLATE_EN;
 }
@@ -228,5 +292,15 @@ export function getDefaultCollectionTemplate(): string {
     return getCurrentLocale() === 'zh-CN' ? DEFAULT_COLLECTION_TEMPLATE_ZH : DEFAULT_COLLECTION_TEMPLATE_EN;
 }
 
+export function getDefaultNoteTemplate(): string {
+    return getCurrentLocale() === 'zh-CN' ? DEFAULT_NOTE_TEMPLATE_ZH : DEFAULT_NOTE_TEMPLATE_EN;
+}
+
+export function getDefaultReviewTemplate(): string {
+    return getCurrentLocale() === 'zh-CN' ? DEFAULT_REVIEW_TEMPLATE_ZH : DEFAULT_REVIEW_TEMPLATE_EN;
+}
+
 export const DEFAULT_TEMPLATE = getDefaultItemTemplate();
 export const DEFAULT_COLLECTION_TEMPLATE = getDefaultCollectionTemplate();
+export const DEFAULT_NOTE_TEMPLATE = getDefaultNoteTemplate();
+export const DEFAULT_REVIEW_TEMPLATE = getDefaultReviewTemplate();
